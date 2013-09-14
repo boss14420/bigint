@@ -43,7 +43,11 @@ typedef duration<double,std::ratio<1>> real_seconds;
 int main(int argc, char *argv[]) 
 {
 #if defined(__GNUC__) && defined(USE_64BIT_LIMB)
-    typedef std::uint64_t Int;
+    #ifdef __LP64__
+        typedef std::uint64_t Int;
+    #else
+        #error "Not support __uint128_t"
+    #endif
 #else
     typedef std::uint32_t Int;
 #endif

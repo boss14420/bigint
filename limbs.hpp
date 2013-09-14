@@ -275,7 +275,7 @@ limbs_multiply_karatsuba (Iterator1 b1, Iterator1 e1, Iterator2 b2,
 
         return;
     } 
-#if defined(__GNUC__) && !defined(USE_64BIT_LIMB)
+#if defined(__GNUC__) && defined(__LP64__) && !defined(USE_64BIT_LIMB)
 //#if 0
     else if (n == 2) {
         std::size_t const bits = (sizeof(Int) << 3);

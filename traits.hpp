@@ -26,7 +26,7 @@ namespace internal {
 
 template <typename T> struct IntTrait {};
 
-#ifdef __GNUC__
+#if defined( __GNUC__) && defined(__LP64__)
 template <>
 struct IntTrait<std::uint64_t> {
     typedef std::uint64_t Int;
@@ -38,7 +38,7 @@ template <>
 struct IntTrait<std::uint32_t> {
     typedef std::uint32_t Int;
     typedef std::uint64_t DoubleInt;
-#ifdef __GNUC__
+#if defined(__GNUC__) && defined(__LP64__)
     typedef __uint128_t QuadInt;
 #endif
 };
