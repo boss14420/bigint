@@ -42,7 +42,9 @@ if (DISTCC_REMOTE_BUILD)
 
     EXECUTE_PROCESS(COMMAND sed -re "s/(.*) - (.*)/\\2/"
                     INPUT_FILE "/tmp/cmake-arch.log"
-                    OUTPUT_VARIABLE CMAKE_CXX_FLAGS_ARCH)
+                    OUTPUT_VARIABLE CMAKE_CXX_FLAGS_ARCH
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+                   )
 
     SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_BASE} ${CMAKE_CXX_FLAGS_ARCH}")
     #MESSAGE ("${CMAKE_CXX_FLAGS_RELEASE}")
