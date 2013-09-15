@@ -31,13 +31,6 @@ constexpr std::size_t max_digit(Int1 base_from, Int2 base_to)
     return 1 + (base_to ? max_digit(base_from, base_to / base_from) : 0);
 }
 
-
-template <typename IntType, IntType I> struct inttype
-{
-    static const IntType value = I;
-};
-template <std::size_t sz> using sizetype = inttype<std::size_t, sz>;
-
 #if defined(__GNUC__) && defined(__LP64__)
 typedef __uint128_t IntMax;
 #else
@@ -53,69 +46,53 @@ template<typename Int, Int... args>
 const Int ArrayHolder<Int, args...>::data[sizeof...(args)] = { args... };
 
 // ------------- generate_array_impl -------------------------
-template<std::size_t Index, typename Int, Int SrcBase, IntMax Quotient, Int... args> 
+
+template<typename _Int, _Int _SrcBase, IntMax _DstBase, std::size_t _MaxDigit>
+struct _Params {
+    typedef _Int Int;
+    static const Int SrcBase = _SrcBase;
+    static const IntMax DstBase = _DstBase;
+    static const std::size_t MaxDigit = _MaxDigit;
+};
+
+template<std::size_t NIndex, std::size_t DIndex, typename Params, typename Int,
+         IntMax Quotient, Int Carry, Int... args> 
 struct generate_array_impl {
-    typedef typename generate_array_impl<Index-1, Int, SrcBase, Quotient/SrcBase, Quotient % SrcBase, args...>::result result;
+    enum { SrcBase = Params::SrcBase };
+    enum { product = Carry + (Quotient % Params::SrcBase) * (SrcBase-NIndex-1)};
+    typedef typename generate_array_impl<NIndex, DIndex-1, Params, Int, 
+                                         Quotient/SrcBase, product / SrcBase, 
+                                         product % SrcBase, args...
+                                        >::result result;
 };
 
-template<typename Int, Int SrcBase, IntMax Quotient, Int... args> 
-struct generate_array_impl<0, Int, SrcBase, Quotient, args...> {
-    typedef ArrayHolder<Int, Quotient % SrcBase, args...> result;
+template<std::size_t NIndex, typename Params, typename Int, IntMax Quotient, 
+         Int Carry, Int... args> 
+struct generate_array_impl<NIndex, 0, Params, Int, Quotient, Carry, args...> {
+    static const IntMax DstBase = Params::DstBase;
+    static const std::size_t MaxDigit = Params::MaxDigit;
+    typedef typename generate_array_impl<NIndex-1, MaxDigit - 1, Params, Int, 
+                                         DstBase, 0, Carry, args...
+                                        >::result result;
 };
 
+template<typename Params, typename Int, IntMax Quotient, Int Carry, Int... args>
+struct generate_array_impl<0, 0, Params, Int, Quotient, Carry, args...> {
+    typedef ArrayHolder<Int, Carry, args...> result;
+};
+
+// -------------- generate_array --------------------------------
 template<typename Int, Int SrcBase, IntMax DstBase> 
 struct generate_array {
     enum { N = max_digit(SrcBase, DstBase) };
-    typedef typename generate_array_impl<N-1, Int, SrcBase, DstBase>::result result;
+    typedef _Params<Int, SrcBase, DstBase, N> Params;
+    typedef typename generate_array_impl<SrcBase-1, N-1, Params, Int, DstBase, 0
+                                        >::result result;
 };
 
 template <typename Int1, typename Int2, Int1 SrcBase>
-using binary_base2 = typename generate_array<Int1, SrcBase, IntTrait<Int2>::base
+using binary_base = typename generate_array<Int1, SrcBase, IntTrait<Int2>::base
                                             >::result;
-
-// ------------- base_convert --------------------------------
-
-template <typename Int1, Int1 From, IntMax To, IntMax Quotient = To,
-          typename I = sizetype<0>>
-struct base_convert : 
-    public base_convert<Int1, From, To, Quotient / From, sizetype<I::value+1>>
-{
-    static const int dummy;
-};
-
-template <typename Int1, Int1 From, IntMax To>
-struct base_convert<Int1, From, To, 0, sizetype<max_digit(From, To)>>
-{
-    static const int dummy;
-    static Int1 to[max_digit(From, To)];
-};
-
-template <typename Int1, Int1 From, IntMax To, IntMax Quotient, typename I>
-const int base_convert<Int1, From, To, Quotient, I>::dummy
-    = base_convert<Int1, From, To, 0, 
-                   sizetype<max_digit(From, To)>>
-        ::to[I::value] = Quotient % From 
-                    + 0 * base_convert<Int1, From, To, Quotient / From,
-                                       sizetype<I::value + 1>>::dummy;
-
-template <typename Int1, Int1 From, IntMax To>
-Int1 base_convert<Int1, From, To, 0,
-                  sizetype<max_digit(From, To)>>::to[max_digit(From, To)];
-
-template <typename Int1, Int1 From, IntMax To>
-const int base_convert<Int1, From, To, 0,
-                       sizetype<max_digit(From, To)>>::dummy = 0;
-
-template <typename Int1, typename Int2, Int1 From>
-struct binary_base : base_convert<Int1, From, IntTrait<Int2>::base>
-{};
-
-//template struct base_convert<char, 10, IntTrait<std::uint8_t>::base>;
-//template struct base_convert<char, 10, IntTrait<std::uint16_t>::base>;
-//template struct base_convert<char, 10, IntTrait<std::uint32_t>::base>;
-//#if defined(__GNUC__) && defined(__LP64__) && defined(USE_64BIT_LIMB)
-//template struct base_convert<char, 10, IntTrait<std::uint64_t>::base>;
-//#endif
 
 }
 }
