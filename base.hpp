@@ -38,58 +38,48 @@ template <typename IntType, IntType I> struct inttype
 };
 template <std::size_t sz> using sizetype = inttype<std::size_t, sz>;
 
+typedef std::uintmax_t IntMax;
 
-template <typename Int1, typename Int2, Int1 From, Int2 To,
-          typename Quotient = inttype<Int2, To>,
+template <typename Int1, Int1 From, IntMax To, IntMax Quotient = To,
           typename I = sizetype<0>>
 struct base_convert : 
-    public base_convert<Int1, Int2, From, To, 
-                        inttype<Int2, Quotient::value / From>,
-                        sizetype<I::value+1>>
+    public base_convert<Int1, From, To, Quotient / From, sizetype<I::value+1>>
 {
     static const int dummy;
 };
 
-template <typename Int1, typename Int2, Int1 From, Int2 To>
-struct base_convert<Int1, Int2, From, To, inttype<Int2, 0>, 
-                    sizetype<max_digit(From, To)>>
+template <typename Int1, Int1 From, IntMax To>
+struct base_convert<Int1, From, To, 0, sizetype<max_digit(From, To)>>
 {
     static const int dummy;
     static Int1 to[max_digit(From, To)];
 };
 
-template <typename Int1, typename Int2, Int1 From, Int2 To,
-          typename Quotient, typename I>
-const int base_convert<Int1, Int2, From, To, Quotient, I>::dummy
-    = base_convert<Int1, Int2, From, To, inttype<Int2, 0>, 
+template <typename Int1, Int1 From, IntMax To, IntMax Quotient, typename I>
+const int base_convert<Int1, From, To, Quotient, I>::dummy
+    = base_convert<Int1, From, To, 0, 
                    sizetype<max_digit(From, To)>>
-        ::to[I::value] = Quotient::value % From 
-                    + 0 * base_convert<Int1, Int2, From, To, 
-                                       inttype<Int2, Quotient::value / From>,
+        ::to[I::value] = Quotient % From 
+                    + 0 * base_convert<Int1, From, To, Quotient / From,
                                        sizetype<I::value + 1>>::dummy;
 
-template <typename Int1, typename Int2, Int1 From, Int2 To>
-Int1 base_convert<Int1, Int2, From, To, inttype<Int2, 0>, 
+template <typename Int1, Int1 From, IntMax To>
+Int1 base_convert<Int1, From, To, 0,
                   sizetype<max_digit(From, To)>>::to[max_digit(From, To)];
 
-template <typename Int1, typename Int2, Int1 From, Int2 To>
-const int base_convert<Int1, Int2, From, To, inttype<Int2, 0>, 
+template <typename Int1, Int1 From, IntMax To>
+const int base_convert<Int1, From, To, 0,
                        sizetype<max_digit(From, To)>>::dummy = 0;
 
 template <typename Int1, typename Int2, Int1 From>
-struct binary_base : base_convert<Int1, typename IntTrait<Int2>::DoubleInt,
-                                  From, IntTrait<Int2>::base>
+struct binary_base : base_convert<Int1, From, IntTrait<Int2>::base>
 {};
 
-template struct base_convert<char, std::uint16_t, 
-                             10, IntTrait<std::uint8_t>::base>;
-template struct base_convert<char, std::uint32_t, 
-                             10, IntTrait<std::uint16_t>::base>;
-template struct base_convert<char, std::uint64_t, 
-                             10, IntTrait<std::uint32_t>::base>;
-#if defined(__GNUC__) && defined(__LP64__)
-template struct base_convert<char, __uint128_t,
-                             10, IntTrait<std::uint64_t>::base>;
+template struct base_convert<char, 10, IntTrait<std::uint8_t>::base>;
+template struct base_convert<char, 10, IntTrait<std::uint16_t>::base>;
+template struct base_convert<char, 10, IntTrait<std::uint32_t>::base>;
+#if defined(__GNUC__) && defined(__LP64__) && defined(USE_64BIT_LIMB)
+template struct base_convert<char, 10, IntTrait<std::uint64_t>::base>;
 #endif
 
 }
