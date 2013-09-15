@@ -28,7 +28,7 @@ namespace internal {
 template <typename Int1, typename Int2>
 constexpr std::size_t max_digit(Int1 base_from, Int2 base_to)
 {
-    return 1 + (base_to ? max_digit(base_from, base_to / base_from) : -1);
+    return 1 + (base_to ? max_digit(base_from, base_to / base_from) : 0);
 }
 
 
