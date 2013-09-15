@@ -22,13 +22,13 @@
 #include "base.hpp"
 
 int main(int argc, char *argv[]) {
-    typedef std::uint16_t Int;
+    typedef std::uint64_t Int;
     typedef typename bigint::internal::IntTrait<Int>::DoubleInt DoubleInt;
 
     constexpr std::size_t bits = (sizeof (Int) << 3);
     constexpr DoubleInt max = DoubleInt(1) << bits;
-    std::cout << max << " = ";
-    auto &&array = bigint::internal::binary_base<char, Int, 10>::to;
+//    std::cout << max << " = ";
+    auto &&array = bigint::internal::binary_base2<char, Int, 10>::data;
 //    auto &&array = bigint::internal::base_convert<char, DoubleInt, 10, 256>::to;
     for (auto c : array)
     {

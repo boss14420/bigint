@@ -38,7 +38,42 @@ template <typename IntType, IntType I> struct inttype
 };
 template <std::size_t sz> using sizetype = inttype<std::size_t, sz>;
 
+#if defined(__GNUC__) && defined(__LP64__)
+typedef __uint128_t IntMax;
+#else
 typedef std::uintmax_t IntMax;
+#endif
+
+// ------------- ArrayHolder ---------------------------------
+template<typename Int, Int... args> struct ArrayHolder {
+    static const Int data[sizeof...(args)];
+};
+
+template<typename Int, Int... args> 
+const Int ArrayHolder<Int, args...>::data[sizeof...(args)] = { args... };
+
+// ------------- generate_array_impl -------------------------
+template<std::size_t Index, typename Int, Int SrcBase, IntMax Quotient, Int... args> 
+struct generate_array_impl {
+    typedef typename generate_array_impl<Index-1, Int, SrcBase, Quotient/SrcBase, Quotient % SrcBase, args...>::result result;
+};
+
+template<typename Int, Int SrcBase, IntMax Quotient, Int... args> 
+struct generate_array_impl<0, Int, SrcBase, Quotient, args...> {
+    typedef ArrayHolder<Int, Quotient % SrcBase, args...> result;
+};
+
+template<typename Int, Int SrcBase, IntMax DstBase> 
+struct generate_array {
+    enum { N = max_digit(SrcBase, DstBase) };
+    typedef typename generate_array_impl<N-1, Int, SrcBase, DstBase>::result result;
+};
+
+template <typename Int1, typename Int2, Int1 SrcBase>
+using binary_base2 = typename generate_array<Int1, SrcBase, IntTrait<Int2>::base
+                                            >::result;
+
+// ------------- base_convert --------------------------------
 
 template <typename Int1, Int1 From, IntMax To, IntMax Quotient = To,
           typename I = sizetype<0>>
@@ -75,12 +110,12 @@ template <typename Int1, typename Int2, Int1 From>
 struct binary_base : base_convert<Int1, From, IntTrait<Int2>::base>
 {};
 
-template struct base_convert<char, 10, IntTrait<std::uint8_t>::base>;
-template struct base_convert<char, 10, IntTrait<std::uint16_t>::base>;
-template struct base_convert<char, 10, IntTrait<std::uint32_t>::base>;
-#if defined(__GNUC__) && defined(__LP64__) && defined(USE_64BIT_LIMB)
-template struct base_convert<char, 10, IntTrait<std::uint64_t>::base>;
-#endif
+//template struct base_convert<char, 10, IntTrait<std::uint8_t>::base>;
+//template struct base_convert<char, 10, IntTrait<std::uint16_t>::base>;
+//template struct base_convert<char, 10, IntTrait<std::uint32_t>::base>;
+//#if defined(__GNUC__) && defined(__LP64__) && defined(USE_64BIT_LIMB)
+//template struct base_convert<char, 10, IntTrait<std::uint64_t>::base>;
+//#endif
 
 }
 }
