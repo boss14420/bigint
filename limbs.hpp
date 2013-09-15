@@ -59,7 +59,7 @@ limbs_from_base (Container1 const& source, Container2 &dest)
 {
     typedef typename Container2::value_type Int;
     typedef typename Container1::value_type Int2;
-    std::size_t const bits = sizeof(Int) << 3;
+    std::size_t const bits = IntTrait<Int>::bits;
     std::size_t const base = 10;
     typename IntTrait<Int>::DoubleInt const dest_base = 1LLU << bits;
     Int2 const dest_base_in_src_base[] = { 6, 9, 7, 6, 9, 4, 9, 2, 4 };
@@ -84,7 +84,7 @@ limbs_add (Iterator1 b1, Iterator1 e1, std::size_t sz1,
     for (; b1 != _e1; ++b1, ++b2, ++b3) {
         (_carry += *b1) += *b2;
         *b3 = _carry;
-        _carry >>= (sizeof(Int) << 3); // carry
+        _carry >>= IntTrait<Int>::bits; // carry
     }
 
     Int carry = _carry;
@@ -123,7 +123,7 @@ limbs_add_inplace (Iterator1 b1, Iterator1 e1, std::size_t sz1,
     for (; b1 != _e1; ++b1, ++b2) {
         (_carry += *b1) += *b2;
         *b1 = _carry;
-        _carry >>= (sizeof(Int) << 3); // carry
+        _carry >>= IntTrait<Int>::bits; // carry
     }
 
     Int carry = _carry;
@@ -171,7 +171,7 @@ limbs_subtract (Iterator1 b1, Iterator1 e1, std::size_t sz1,
     typedef typename std::iterator_traits<Iterator1>::value_type Int;
     typedef typename IntTrait<Int>::DoubleInt DoubleInt;
 
-    std::size_t const bits = sizeof(Int) << 3;
+    std::size_t const bits = IntTrait<Int>::bits;
 
     DoubleInt _carry = 0;
     DoubleInt const exponent = DoubleInt(1) << bits;
@@ -203,7 +203,7 @@ limbs_subtract_inplace (Iterator1 b1, Iterator1 e1, std::size_t sz1,
     typedef typename std::iterator_traits<Iterator1>::value_type Int;
     typedef typename IntTrait<Int>::DoubleInt DoubleInt;
 
-    std::size_t const bits = sizeof(Int) << 3;
+    std::size_t const bits = IntTrait<Int>::bits;
 
     DoubleInt _carry = 0;
     DoubleInt const exponent = DoubleInt(1) << bits;
@@ -271,14 +271,14 @@ limbs_multiply_karatsuba (Iterator1 b1, Iterator1 e1, Iterator2 b2,
         product *= *b2;
 
         *b3 = product;
-        *++b3 = product >> (sizeof(Int) << 3);
+        *++b3 = product >> IntTrait<Int>::bits;
 
         return;
     } 
 #if defined(__GNUC__) && defined(__LP64__) && !defined(USE_64BIT_LIMB)
 //#if 0
     else if (n == 2) {
-        std::size_t const bits = (sizeof(Int) << 3);
+        std::size_t const bits = IntTrait<Int>::bits;
         typename IntTrait<Int>::QuadInt product = *b1, tmp = *b2;
         product |= DoubleInt(*(b1+1)) << bits;
         tmp |= DoubleInt(*(b2+1)) << bits;

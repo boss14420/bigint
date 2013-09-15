@@ -34,8 +34,9 @@ template <typename T = std::uint32_t, typename Container = std::deque<T>>
 class BigInt
 {
 public:
-    typedef typename internal::IntTrait<T>::Int Int;
-    typedef typename internal::IntTrait<T>::DoubleInt DoubleInt;
+    template <typename U> using IntTrait = internal::IntTrait<U>;
+    typedef typename IntTrait<T>::Int Int;
+    typedef typename IntTrait<T>::DoubleInt DoubleInt;
 
 public:
     BigInt() = default;
@@ -117,13 +118,13 @@ public:
     // ----------------------------------------------------------------
     BigInt& operator<<= (std::size_t bits)
     {
-        const std::size_t bitsPerLimb = bits & ((sizeof(Int) << 3) - 1);
-        const std::size_t additionLimb = bits / (sizeof(Int) << 3);
+        const std::size_t bitsPerLimb = bits & (IntTrait<Int>::bits - 1);
+        const std::size_t additionLimb = bits / IntTrait<Int>::bits;
 
         // shift
         Int rem = 0, tmprem;
         for (Int &limb : value) {
-            tmprem = limb >> ((sizeof(Int) << 3) - bitsPerLimb);
+            tmprem = limb >> (IntTrait<Int>::bits - bitsPerLimb);
             limb <<= bitsPerLimb;
             limb |= rem;
             rem = tmprem;
@@ -145,8 +146,8 @@ public:
     // ----------------------------------------------------------------
     BigInt& operator>>= (std::size_t bits)
     {
-        const std::size_t bitsPerLimb = bits & ((sizeof(Int) << 3) - 1);
-        const std::size_t removal = bits / (sizeof(Int) << 3);
+        const std::size_t bitsPerLimb = bits & (IntTrait<Int>::bits - 1);
+        const std::size_t removal = bits / IntTrait<Int>::bits;
 
         value.erase(value.begin(), value.begin() + removal);
 
@@ -154,7 +155,7 @@ public:
         for (auto il = value.rbegin(); il != value.rend(); ++il) {
             tmprem = *il & ((1 << bitsPerLimb) - 1);
             *il >>= bitsPerLimb;
-            *il |= rem << ((sizeof(Int) << 3) - bitsPerLimb);
+            *il |= rem << (IntTrait<Int>::bits - bitsPerLimb);
             rem = tmprem;
         }
         if (!value.back()) value.pop_back();

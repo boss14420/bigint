@@ -52,6 +52,8 @@ int main(int argc, char *argv[])
     typedef std::uint32_t Int;
 #endif
 
+    typedef typename bigint::internal::IntTrait<Int>::DoubleInt DoubleInt;
+
     typedef std::vector<Int> Container;
 
     std::size_t l1 = std::atoi(argv[1]);

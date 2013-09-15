@@ -8,19 +8,6 @@ PROJECT(BigInt)
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
 
-FILE(GLOB_RECURSE bigint_SOURCES *.cc)
-FILE(GLOB_RECURSE bigint_HEADERS *.hpp)
-
-if (WIN32)
-    SET(USRDIR "./")
-endif (WIN32)
-if (UNIX)
-    SET(USRDIR "${CMAKE_INSTALL_PREFIX}/share/")
-endif (UNIX)
-
-#ADD_DEFINITIONS(-D__PALETTES_PATH__=${USRDIR}/palettes)
-#ADD_DEFINITIONS(-D__PALETTES_PATH__=palettes)
-
 SET(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -Wall -std=c++11")
 SET(CMAKE_CXX_FLAGS_RELEASE "-g -pipe -Ofast -march=native -Wall -std=c++11 -DNDEBUG")
 SET(CMAKE_EXE_LINKER_FLAGS "")
@@ -50,7 +37,7 @@ if (DISTCC_REMOTE_BUILD)
     #MESSAGE ("${CMAKE_CXX_FLAGS_RELEASE}")
 endif (DISTCC_REMOTE_BUILD)
 
-ADD_EXECUTABLE(test ${bigint_SOURCES}
-                    ${bigint_HEADERS}
-                )
+ADD_EXECUTABLE(test test.cc bigint.hpp traits.hpp limbs.hpp)
+
+ADD_EXECUTABLE(test-base test-base.cc base.hpp traits.hpp)
 #TARGET_LINK_LIBRARIES(bigint)
