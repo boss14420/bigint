@@ -60,6 +60,17 @@ struct IntTrait<std::uint16_t> {
     static const DoubleInt base = DoubleInt(1) << bits;
 };
 
+template <>
+struct IntTrait<std::uint8_t> {
+    typedef std::uint8_t Int;
+    typedef std::uint16_t DoubleInt;
+    typedef std::uint32_t QuadInt;
+    static const std::size_t size = 1;
+    static const std::size_t bits = 8;
+    static const DoubleInt base = DoubleInt(1) << bits;
+};
+
+
 } // namespace internal
 } // namespace bigint
 
